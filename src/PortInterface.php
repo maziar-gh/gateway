@@ -1,5 +1,4 @@
 <?php
-
 namespace Larabookir\Gateway;
 
 interface PortInterface
@@ -19,7 +18,7 @@ interface PortInterface
      *
      * @return $this
      */
-    public function ready();
+    public function ready($payment_id);
 
     /**
      * Get ref id, in some ports ref id has a different name such as authority
