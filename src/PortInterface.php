@@ -18,7 +18,7 @@ interface PortInterface
      *
      * @return $this
      */
-    public function ready($payment_id);
+    public function ready($payment_id, $callback_url);
 
     /**
      * Get ref id, in some ports ref id has a different name such as authority

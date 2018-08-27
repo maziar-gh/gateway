@@ -202,7 +202,7 @@ abstract class PortAbstract
      *
      * @return int last inserted id
      */
-    protected function newTransaction($payment_id)
+    protected function newTransaction($payment_id, $callback_url)
     {
         $uid = $this->getTimeId();
         $this->transactionId = $this->getTable()->insert([
@@ -213,7 +213,8 @@ abstract class PortAbstract
             'ip' => Request::getClientIp(),
             'created_at' => Carbon::now(),
             'updated_at' => Carbon::now(),
-            'payment_id' => $payment_id
+            'payment_id' => $payment_id,
+            'callback_url' => $callback_url
         ]) ? $uid : null;
 
         return $this->transactionId;

@@ -4,6 +4,7 @@ namespace Larabookir\Gateway\Pasargad;
 
 use Illuminate\Support\Facades\Input;
 use Larabookir\Gateway\Enum;
+use Larabookir\Gateway\Parsian\ParsianErrorException;
 use Larabookir\Gateway\PortAbstract;
 use Larabookir\Gateway\PortInterface;
 
@@ -38,9 +39,9 @@ class Pasargad extends PortAbstract implements PortInterface
     /**
      * {@inheritdoc}
      */
-    public function ready($payment_id)
+    public function ready($payment_id, $callback_url)
     {
-        $this->sendPayRequest($payment_id);
+        $this->sendPayRequest($payment_id, $callback_url);
 
         return $this;
     }
@@ -112,9 +113,9 @@ class Pasargad extends PortAbstract implements PortInterface
      *
      * @throws ParsianErrorException
      */
-    protected function sendPayRequest($payment_id)
+    protected function sendPayRequest($payment_id, $callback_url)
     {
-        $this->newTransaction($payment_id);
+        $this->newTransaction($payment_id, $callback_url);
     }
 
     /**
