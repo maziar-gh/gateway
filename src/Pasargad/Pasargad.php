@@ -131,6 +131,8 @@ class Pasargad extends PortAbstract implements PortInterface
 
         $result = Parser::post2https($fields, $this->checkTransactionUrl);
         $array = Parser::makeXMLTree($result);
+        $verifyResult = $this->callVerifyPayment($array);
+        $array['result'] = $verifyResult['result'] ?? false;
 
 
         if ($array['result'] != "True") {
@@ -145,5 +147,49 @@ class Pasargad extends PortAbstract implements PortInterface
         $this->trackingCode = $array['traceNumber'];
         $this->transactionSucceed();
         $this->newLog($array['result'], Enum::TRANSACTION_SUCCEED_TEXT);
+    }
+
+    /**
+     * @param $data
+     * @return array
+     */
+    protected function callVerifyPayment($data)
+    {
+        $processor = new RSAProcessor($this->config->get('gateway.pasargad.certificate-path'), RSAKeyType::XMLFile);
+        $merchantCode = $this->config->get('gateway.pasargad.merchantId');
+        $terminalCode = $this->config->get('gateway.pasargad.terminalId');
+        $invoiceNumber = $data['invoiceNumber'];
+        $invoiceDate = $data['invoiceDate'];
+        $timeStamp = date("Y/m/d H:i:s");
+        $amount = $data['amount'];
+        $signData = "#" . $merchantCode . "#" . $terminalCode . "#" . $invoiceNumber . "#" . $invoiceDate . "#" . $amount . "#" . $timeStamp . "#";
+        $signDataSha1 = sha1($signData, true);
+        $tempSign = $processor->sign($signDataSha1);
+        $sign = base64_encode($tempSign);
+
+        $body = [
+            'merchantCode' => $merchantCode,
+            'terminalCode' => $terminalCode,
+            'invoiceNumber' => $invoiceNumber,
+            'invoiceDate' => $invoiceDate,
+            'amount' => $amount,
+            'timeStamp' => $timeStamp,
+            'sign' => $sign
+        ];
+
+
+        return $this->convertXMLtoArray(Parser::post2https($body, $this->verifyUrl));
+    }
+
+    /**
+     * @param string $xmlString
+     * @return array
+     */
+    private function convertXMLtoArray($xmlString)
+    {
+        $xml = simplexml_load_string($xmlString, "SimpleXMLElement", LIBXML_NOCDATA);
+        $json = json_encode($xml);
+
+        return json_decode($json,True);
     }
 }
